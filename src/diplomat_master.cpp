@@ -16,7 +16,19 @@ extern "C" {
 #include "log-internal.h"
 }
 
-#include "diplomat.h"
+#include "embassy.h"
+
+using namespace std;
+DiplomatMaster::DiplomatMaster() :
+_id_master("")	{
+
+	_embassy = NULL;
+}
+
+void DiplomatMaster::SetEmbassy(Embassy *embassy) {
+
+	_embassy = embassy;
+}
 
 void DiplomatMaster::BuildDiplomat(struct event_base *base,
 	    evutil_socket_t sock, struct sockaddr *addr, int len) {
@@ -31,18 +43,20 @@ void DiplomatMaster::BuildDiplomat(struct event_base *base,
 	DiplomatDic::iterator diplomat_itor = _diplomat_dic.find(bev);
 	if ( diplomat_itor != _diplomat_dic.end() ) {
 		event_msgx("bev has got a diplomat");
-		if ( diplomat_itor->second ) {
-			delete diplomat_itor->second;
-			diplomat_itor->second = NULL;
-		}
+		_diplomat_dic.erase(diplomat_itor);
 	}
-	_diplomat_dic[bev] = new Diplomat(bev);
+	string id;
+	_id_master.GetIdentity(id);
+	_diplomat_dic[bev] = new Diplomat(bev, id);
 
 	bufferevent_setcb(bev, ReadCB, NULL, EventCB, this);
 	//By default, a newly created bufferevent has writing enabled, but not reading.
 	//so enable reading here
 	bufferevent_enable(bev, EV_READ | EV_WRITE);
 
+	if ( _embassy ) {
+		_embassy->GarrisonDiplomat(_diplomat_dic[bev]);
+	}
 	struct sockaddr_in* addr_in = (struct sockaddr_in*)addr;
 	printf("new socket :%s:%d\n", inet_ntoa(addr_in->sin_addr), ntohs(addr_in->sin_port));
 }
@@ -51,17 +65,27 @@ void DiplomatMaster::FreeDiplomat(struct bufferevent *bev) {
 
 	DiplomatDic::iterator diplomat_itor = _diplomat_dic.find(bev);
 	if ( diplomat_itor != _diplomat_dic.end() ) {
-		if ( diplomat_itor->second ) {
-			delete diplomat_itor->second;
-			diplomat_itor->second = NULL;
+		string id = diplomat_itor->second->Id();
+		if ( _embassy ) {
+
+			_embassy->WithdrawDiplomat(diplomat_itor->second);
 		}
 		_diplomat_dic.erase(diplomat_itor);
+		_id_master.ReleaseIdentity(id);
 	}
-	bufferevent_free(bev);
+
 	printf("socket close\n");
 }
 
 void DiplomatMaster::ReadCB(struct bufferevent *bev, void *ctx) {
+
+	DiplomatMaster *master = reinterpret_cast<DiplomatMaster*>(ctx);
+	assert(master);
+	DiplomatDic::iterator diplomat_itor = master->_diplomat_dic.find(bev);
+	if ( diplomat_itor != master->_diplomat_dic.end() &&  master->_embassy ) {
+
+		master->_embassy->RecvSomething(diplomat_itor->second);
+	}
 	printf("read something\n");
 }
 

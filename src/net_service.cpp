@@ -37,7 +37,9 @@ NetService::~NetService() {
 		evconnlistener_free(_event_listener);
 }
 
-int NetService::Init(){
+int NetService::Init(Embassy *embassy) {
+
+	_master.SetEmbassy(embassy);
 
     if (!_event_base) {
     	return kLibEventErr;
@@ -62,6 +64,7 @@ int NetService::Init(){
 }
 
 int NetService::Start() {
+
 	event_base_dispatch(_event_base);
 	return kOK;
 }

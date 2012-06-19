@@ -11,11 +11,19 @@
 #include <map>
 #include "event.h"
 
-class Diplomat;
+#include "diplomat.h"
+#include "util/identity_master.h"
+#include "embassy.h"
+
 class DiplomatMaster {
 
-	typedef std::map<bufferevent *, Diplomat*> DiplomatDic;
+	typedef std::map<bufferevent *, DiplomatPtr> DiplomatDic;
 public:
+
+	DiplomatMaster();
+
+	void SetEmbassy(Embassy *embassy);
+
 	void BuildDiplomat(struct event_base *base,
     evutil_socket_t sock, struct sockaddr *addr, int len);
 
@@ -28,6 +36,8 @@ private:
 
 private:
 	DiplomatDic _diplomat_dic;
+	Embassy *_embassy;
+	IdentityMaster _id_master;
 
 };
 

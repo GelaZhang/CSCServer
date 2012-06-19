@@ -12,6 +12,7 @@
 
 struct event_base;
 struct evconnlistener;
+class Embassy;
 
 class NetService {
 
@@ -20,8 +21,9 @@ public:
 	~NetService();
 	/**
 	 * \brief 初始化网络服务
+	 * \param[in] embassy is the office of the diplomat
 	 */
-	int Init();
+	int Init(Embassy *embassy);
 
 	/**
 	 * \brief 开启网络服务，必须先Init才能Start
