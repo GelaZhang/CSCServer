@@ -39,53 +39,68 @@ void DiplomatMaster::BuildDiplomat(struct event_base *base,
 		event_warnx("can't new bufferevent");
 		return;
 	}
-
-	DiplomatDic::iterator diplomat_itor = _diplomat_dic.find(bev);
-	if ( diplomat_itor != _diplomat_dic.end() ) {
-		event_msgx("bev has got a diplomat");
-		_diplomat_dic.erase(diplomat_itor);
-	}
 	string id;
 	_id_master.GetIdentity(id);
-	_diplomat_dic[bev] = new Diplomat(bev, id);
+	DiplomatPtr diplomat = new Diplomat(bev, id, addr, len);
 
 	bufferevent_setcb(bev, ReadCB, NULL, EventCB, this);
+
+	{
+		AutoMutex auto_mutex(_mutex);
+		DiplomatDic::iterator diplomat_itor = _diplomat_dic.find(bev);
+		if ( diplomat_itor != _diplomat_dic.end() ) {
+			event_msgx("bev has got a diplomat");
+			_diplomat_dic.erase(diplomat_itor);
+		}
+		_diplomat_dic[bev] = diplomat;
+	}
 	//By default, a newly created bufferevent has writing enabled, but not reading.
 	//so enable reading here
 	bufferevent_enable(bev, EV_READ | EV_WRITE);
 
 	if ( _embassy ) {
-		_embassy->GarrisonDiplomat(_diplomat_dic[bev]);
+		_embassy->GarrisonDiplomat(diplomat);
 	}
-	struct sockaddr_in* addr_in = (struct sockaddr_in*)addr;
-	printf("new socket :%s:%d\n", inet_ntoa(addr_in->sin_addr), ntohs(addr_in->sin_port));
+
+	printf("new socket :%s:%d\n", _diplomat_dic[bev]->IP(), _diplomat_dic[bev]->Port());
 }
 
 void DiplomatMaster::FreeDiplomat(struct bufferevent *bev) {
 
-	DiplomatDic::iterator diplomat_itor = _diplomat_dic.find(bev);
-	if ( diplomat_itor != _diplomat_dic.end() ) {
-		string id = diplomat_itor->second->Id();
-		if ( _embassy ) {
-
-			_embassy->WithdrawDiplomat(diplomat_itor->second);
+	DiplomatPtr diplomat = NULL;
+	{
+		AutoMutex auto_mutex(_mutex);
+		DiplomatDic::iterator diplomat_itor = _diplomat_dic.find(bev);
+		if ( diplomat_itor != _diplomat_dic.end() ) {
+			diplomat = diplomat_itor->second;
+			_diplomat_dic.erase(diplomat_itor);
 		}
-		_diplomat_dic.erase(diplomat_itor);
-		_id_master.ReleaseIdentity(id);
 	}
 
-	printf("socket close\n");
+	string id = diplomat->Id();
+	if ( _embassy ) {
+
+		_embassy->WithdrawDiplomat(diplomat);
+	}
+	_id_master.ReleaseIdentity(id);
+
+	printf("socket close id:%s\n", id.c_str());
 }
 
 void DiplomatMaster::ReadCB(struct bufferevent *bev, void *ctx) {
 
 	DiplomatMaster *master = reinterpret_cast<DiplomatMaster*>(ctx);
 	assert(master);
-	DiplomatDic::iterator diplomat_itor = master->_diplomat_dic.find(bev);
-	if ( diplomat_itor != master->_diplomat_dic.end() &&  master->_embassy ) {
+	DiplomatPtr diplomat = NULL;
+	{
+		AutoMutex auto_mutex(master->_mutex);
+		DiplomatDic::iterator diplomat_itor = master->_diplomat_dic.find(bev);
+		if ( diplomat_itor != master->_diplomat_dic.end() &&  master->_embassy ) {
 
-		master->_embassy->RecvSomething(diplomat_itor->second);
+			diplomat = diplomat_itor->second;
+		}
 	}
+	master->_embassy->RecvSomething(diplomat);
 	printf("read something\n");
 }
 

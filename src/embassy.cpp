@@ -25,6 +25,7 @@ int Embassy::WithdrawDiplomat(const DiplomatPtr &diplomat) {
 
 int Embassy::RecvSomething(const DiplomatPtr &diplomat) {
 	printf("diplomat %s recv something", diplomat->Id().c_str());
+	//diplomat->Speek("read something\n", 15);
 	return kError;
 }
 

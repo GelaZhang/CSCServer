@@ -34,10 +34,13 @@ private:
 
 	static void EventCB(struct bufferevent *bev, short events, void *ctx);
 
+
 private:
 	DiplomatDic _diplomat_dic;
 	Embassy *_embassy;
 	IdentityMaster _id_master;
+
+	Mutex _mutex;
 
 };
 

@@ -6,16 +6,26 @@
  */
 #include "diplomat.h"
 
+#include <strings.h>
+
+#include <arpa/inet.h>
+
 #include "event.h"
 
 #include "def.h"
 
 using namespace std;
 
-Diplomat::Diplomat(struct bufferevent *bev, const string &id) :
+Diplomat::Diplomat(struct bufferevent *bev, const string &id,
+		struct sockaddr *addr, int len) :
 _id(id) {
 
 	_bev = bev;
+
+	bzero(_ip, INET_ADDRSTRLEN + 1);
+	struct sockaddr_in* addr_in = (struct sockaddr_in*)addr;
+	inet_ntop(AF_INET, (void*)(&addr_in->sin_addr), _ip, INET_ADDRSTRLEN);
+	_port = ntohs(addr_in->sin_port);
 }
 
 Diplomat::~Diplomat() {
@@ -26,7 +36,42 @@ Diplomat::~Diplomat() {
 
 }
 
-int Diplomat::Speek(const char* content, int len) {
+int Diplomat::Speek(BYTE *content, int len) {
 
-	return kError;
+	AutoMutex auto_mutex(_mutex_speek);
+	if ( 0 == bufferevent_write(_bev, content, len) )
+		return kOK;
+	return kLibEventErr;
+}
+
+size_t Diplomat::GetMassageLength() {
+
+	return evbuffer_get_length(bufferevent_get_input(_bev));
+}
+
+size_t Diplomat::GetPeekAbleLength() {
+
+	return evbuffer_get_contiguous_space(bufferevent_get_input(_bev));
+}
+
+size_t Diplomat::Peek(void **buffer) {
+
+    struct evbuffer_iovec v = { NULL, 0 };
+    evbuffer_peek(bufferevent_get_input(_bev), -1, NULL, &v, 1);
+    *buffer = v.iov_base;
+    return v.iov_len;
+}
+
+size_t Diplomat::ReadMassage(BYTE *content, size_t buffer_length, size_t length_expect) {
+
+	if ( !content )
+		return 0;
+
+	if ( 0 == length_expect ) {
+
+		size_t len = evbuffer_get_length(bufferevent_get_input(_bev));
+		buffer_length = buffer_length > len ? len : buffer_length;
+	}
+	return bufferevent_read(_bev, content, buffer_length);
+
 }

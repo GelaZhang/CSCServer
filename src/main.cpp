@@ -25,9 +25,12 @@ void *test_func(void *arg)
 int main(int argc, char* argv[]) {
 
 	Embassy embassy;
-	NetService svr(5054);
-	svr.Init(&embassy);
+	NetService svr(5055);
+	svr.Init(&embassy, 2);
 	svr.Start();
+	sleep(100);
+	svr.Stop();
+	svr.UnInit();
 	return 0;
 }
 

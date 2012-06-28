@@ -23,7 +23,7 @@ public:
 	 * \brief 初始化网络服务
 	 * \param[in] embassy is the office of the diplomat
 	 */
-	int Init(Embassy *embassy);
+	int Init(Embassy *embassy, int concurrent_num);
 
 	/**
 	 * \brief 开启网络服务，必须先Init才能Start
@@ -46,8 +46,13 @@ private:
 	static void BuildDiplomat(struct evconnlistener *listener,
     evutil_socket_t sock, struct sockaddr *addr, int len, void *ptr);
 
+	static void* event_loop(void *);
 private:
-	event_base *_event_base;
+	event_base **_event_base;
+	event **_event_hold_base;
+	int _e_base_index;
+	int _concurrent_num;
+	pthread_t *_event_thread;
 	evconnlistener  *_event_listener;
 	short int _net_port;
 
