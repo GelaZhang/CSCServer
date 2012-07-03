@@ -5,10 +5,14 @@
  *      Author: sundayman
  */
 #include "diplomat.h"
-
+#ifndef WIN32
 #include <strings.h>
 
 #include <arpa/inet.h>
+#else
+#include <string.h>
+#endif
+
 
 #include "event.h"
 
@@ -24,7 +28,7 @@ _id(id) {
 
 	bzero(_ip, INET_ADDRSTRLEN + 1);
 	struct sockaddr_in* addr_in = (struct sockaddr_in*)addr;
-	inet_ntop(AF_INET, (void*)(&addr_in->sin_addr), _ip, INET_ADDRSTRLEN);
+	evutil_inet_ntop(AF_INET, (void*)(&addr_in->sin_addr), _ip, INET_ADDRSTRLEN);
 	_port = ntohs(addr_in->sin_port);
 }
 

@@ -13,7 +13,7 @@ typedef void (*log_interface)(int severity, const char *msg);
 class EnvMaster {
 
 public:
-	void SetLogInterface(log_interface interface);
+	void SetLogInterface(log_interface fn);
 };
 
 

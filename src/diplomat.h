@@ -9,8 +9,12 @@
 #define DIPLOMAT_H_
 
 #include <string>
-
+#ifndef WIN32
 #include <netinet/in.h>
+#else
+#include <WinSock2.h>
+#include <ws2ipdef.h>
+#endif
 
 #include "util/ref_counter.h"
 

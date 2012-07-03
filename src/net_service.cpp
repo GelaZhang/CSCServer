@@ -4,20 +4,29 @@
  * \author	: sundayman
  * \date	: Jun 11, 2012
  */
-
+#ifdef WIN32
+#include <WinSock2.h>
+#endif
 #include "net_service.h"
 
 #include "stddef.h"
+#ifndef WIN32
 #include "strings.h"
+#include <arpa/inet.h>
+#else
+#include <time.h>
+#include <Windows.h>
+#endif
 #include <string.h>
 #include <assert.h>
-#include <arpa/inet.h>
+
 #include <errno.h>
 
 #include "event.h"
 extern "C" {
 #include "event2/listener.h"
 #include "log-internal.h"
+#include "event2/thread.h"
 }
 
 #include "def.h"
@@ -45,6 +54,21 @@ void event_cb_fn(evutil_socket_t, short, void *) {
 
 int NetService::Init(Embassy *embassy, int concurrent_num) {
 
+#ifdef WIN32
+    WSADATA wsd;
+    if ( 0 != WSAStartup(MAKEWORD(2,2), &wsd) )
+    {
+        return kError;
+    }
+    if (!( 2 == LOBYTE(wsd.wVersion) && 2 == HIBYTE(wsd.wVersion) ) )
+    {
+        return kError;
+    }
+#else
+    evthread_use_pthreads();
+#endif
+
+
     if ( !embassy || concurrent_num <= 0 ) {
     	return kError;
     }
@@ -55,17 +79,21 @@ int NetService::Init(Embassy *embassy, int concurrent_num) {
     _concurrent_num = concurrent_num;
     if ( _concurrent_num > 1 )
     	_event_hold_base = new event*[concurrent_num - 1];
+    _event_thread = new EventThreadPtr[concurrent_num];
     for ( int i = 0; i < concurrent_num; i ++ ) {
 
     	_event_base[i] = event_base_new();
+        _event_thread[i] = new EventThread(_event_base[i]);
+        event_msgx("base %d : %d", i, _event_base[i]);
     }
-    struct timeval timeout = {time(0),0};
+
+    struct timeval timeout = {2,1};
     for ( int i = 0; i < concurrent_num - 1; i ++ ) {
 
-    	_event_hold_base[i] = event_new(_event_base[i+1], -1, EV_PERSIST, event_cb_fn, NULL);
+    	_event_hold_base[i] = event_new(_event_base[i+1], -1, EV_PERSIST|EV_WRITE, event_cb_fn, NULL );
     	event_add(_event_hold_base[i], &timeout);
     }
-    _event_thread = new pthread_t[concurrent_num];
+    
 
     sockaddr_in sin;
     bzero(&sin, sizeof(sin));
@@ -89,32 +117,66 @@ int NetService::Init(Embassy *embassy, int concurrent_num) {
 int NetService::Start() {
 
 	for ( int i = 0; i < _concurrent_num; i ++ ) {
-		pthread_create(&_event_thread[i], NULL, event_loop, (void*)(_event_base[i]));
+		_event_thread[i]->start();
 	}
 
 	return kOK;
 }
 
 int NetService::Stop() {
+	event_msgx("net service stopping");
 
-	for ( int i = 0; i < _concurrent_num; i ++ ) {
+    if ( _event_listener ) {
+    	evconnlistener_disable(_event_listener);
+        event_msgx("disable listener");
+    }
 
-		event_base_loopexit(_event_base[i], NULL);
+    if ( _event_hold_base ) {
+
+        for ( int i = 0; i < _concurrent_num - 1; i ++ ) {
+
+            event_del(_event_hold_base[i]);
+            event_msgx("del timeout event");
+        }
+    }
+    _master.FreeAllDiplomat();
+    for ( int i = 0; i < _concurrent_num; i ++ ) {
+
+    	event_msgx("ready to exit %d", _event_base[i]);
+    	//event_base_loopexit(_event_base[i], NULL);
+    	event_base_loopbreak(_event_base[i]);
 	}
-
+    event_msgx("ready to join thread");
 	for ( int i = 0; i < _concurrent_num; i ++ ) {
-		pthread_join(_event_thread[i], NULL);
-	}
+		_event_thread[i]->getThreadControl().join();
 
+	}
+	event_msgx("net service stop");
 	return kOK;
 }
 
 int NetService::UnInit() {
 
-	if ( _event_listener ) {
 
-		evconnlistener_free(_event_listener);
-		_event_listener = NULL;
+    if ( _event_listener ) {
+        evconnlistener_free(_event_listener);
+        event_msgx("free listener");
+        _event_listener = NULL;
+    }
+
+	if ( _event_hold_base ) {
+
+		for ( int i = 0; i < _concurrent_num - 1; i ++ ) {
+
+			event_free(_event_hold_base[i]);
+		}
+		delete []_event_hold_base;
+		_event_hold_base = NULL;
+	}
+
+	if ( _event_thread ) {
+		delete []_event_thread;
+		_event_thread = NULL;
 	}
 
 	if ( _event_base ) {
@@ -123,24 +185,18 @@ int NetService::UnInit() {
 
 			event_base_free(_event_base[i]);
 		}
+		delete []_event_base;
 		_event_base = NULL;
 	}
 
-	if ( _event_hold_base ) {
-
-		for ( int i = 0; i < _concurrent_num - 1; i ++ ) {
-
-			event_free(_event_hold_base[i]);
-		}
-		_event_hold_base = NULL;
-	}
-
-	if ( _event_thread ) {
-		delete []_event_thread;
-		_event_thread = NULL;
-	}
 	_e_base_index = 0;
-
+#ifdef WIN32
+    if ( 0 != WSACleanup() )
+    {
+        int errCode = WSAGetLastError();
+        //����log
+    }
+#endif
 	return kOK;
 }
 
@@ -165,11 +221,12 @@ void NetService::BuildDiplomat(struct evconnlistener *listener,
 	service->_e_base_index = (service->_e_base_index + 1) % service->_concurrent_num;
 }
 
-void* NetService::event_loop(void *arg) {
-
-	printf("event_loop start %d\n", (int)arg);
-	event_base_dispatch(reinterpret_cast<event_base*>(arg) );
-	printf("thread quit %d \n", (int)arg);
-	return NULL;
+NetService::EventThread::EventThread(event_base *base) {
+    _event_base = base;
 }
 
+void NetService::EventThread::run() {
+	event_msgx("base %d\n", _event_base);
+    event_base_dispatch(_event_base);
+    event_msgx("thread finish base %d\n", _event_base);
+}

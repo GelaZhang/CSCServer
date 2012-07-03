@@ -10,8 +10,9 @@
 #include <errno.h>
 #include <string.h>
 #include <assert.h>
+#ifndef WIN32
 #include <arpa/inet.h>
-
+#endif
 extern "C" {
 #include "log-internal.h"
 }
@@ -33,6 +34,7 @@ void DiplomatMaster::SetEmbassy(Embassy *embassy) {
 void DiplomatMaster::BuildDiplomat(struct event_base *base,
 	    evutil_socket_t sock, struct sockaddr *addr, int len) {
 
+    
 	struct bufferevent *bev = bufferevent_socket_new(base, sock,
 			BEV_OPT_CLOSE_ON_FREE | BEV_OPT_DEFER_CALLBACKS);
 	if ( !bev ) {
@@ -63,6 +65,24 @@ void DiplomatMaster::BuildDiplomat(struct event_base *base,
 	}
 
 	printf("new socket :%s:%d\n", _diplomat_dic[bev]->IP(), _diplomat_dic[bev]->Port());
+}
+
+void DiplomatMaster::FreeAllDiplomat() {
+
+    AutoMutex auto_mutex(_mutex);
+    for ( DiplomatDic::iterator diplomat_itor = _diplomat_dic.begin(); 
+        diplomat_itor != _diplomat_dic.end(); ++ diplomat_itor ) {
+        
+            string id = diplomat_itor->second->Id();
+            if ( _embassy ) {
+
+                _embassy->WithdrawDiplomat(diplomat_itor->second);
+            }
+            _id_master.ReleaseIdentity(id);
+
+            printf("socket close id:%s\n", id.c_str());
+    }
+    _diplomat_dic.clear();
 }
 
 void DiplomatMaster::FreeDiplomat(struct bufferevent *bev) {
@@ -100,6 +120,10 @@ void DiplomatMaster::ReadCB(struct bufferevent *bev, void *ctx) {
 			diplomat = diplomat_itor->second;
 		}
 	}
+    if ( !diplomat ) {
+        event_msgx("bev had been free, abandon recv data");
+        return;
+    }
 	master->_embassy->RecvSomething(diplomat);
 	printf("read something\n");
 }

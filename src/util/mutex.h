@@ -12,6 +12,8 @@
 #include <cassert>
 #ifndef WIN32
 #include "pthread.h"
+#else
+#include <Windows.h>
 #endif
 /**
 *	\brief 简单的锁，封装了CriticalSection pthread_mutex_t
@@ -52,7 +54,7 @@ public:
     {
         return *this;
     }
-	void Lock()
+	void Lock() const
 	{
 #ifdef WIN32
 		::EnterCriticalSection(&_lock);
@@ -61,7 +63,7 @@ public:
 #endif
 	}
 
-	void UnLock()
+	void UnLock() const
 	{
 #ifdef WIN32
 		::LeaveCriticalSection(&_lock);
@@ -84,9 +86,9 @@ public:
 
 private:
 #ifdef WIN32
-	CRITICAL_SECTION _lock;
+	mutable CRITICAL_SECTION _lock;
 #else
-	pthread_mutex_t _mutex;
+	mutable pthread_mutex_t _mutex;
 #endif //WIN32
 };
 
@@ -97,7 +99,7 @@ class AutoMutex
 	//这个类需要改进
 	//1:兼容临界区
 public:
-	AutoMutex(Mutex &mutex):
+	AutoMutex(const Mutex &mutex):
 		_mutex(mutex)
 	{
 		_mutex.Lock();
@@ -116,7 +118,7 @@ private:
 	AutoMutex(const AutoMutex&);
 	AutoMutex& operator = (const AutoMutex&);
 private:
-	Mutex &_mutex;
+	const Mutex &_mutex;
 
 };
 #endif /* MUTEX_H_ */

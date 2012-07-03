@@ -36,7 +36,7 @@ void RefCounter::Release()
 	assert(::InterlockedExchangeAdd((volatile LONG *)(&_ref), 0) > 0);
 	if(::InterlockedDecrement(static_cast<volatile LONG *>(&_ref)) == 0 && !_no_delete)
 	{
-		m_bNoDelete = true;
+		_no_delete = true;
 		delete this;
 	}
 #elif __GNUC__ >= 4
@@ -52,7 +52,7 @@ void RefCounter::Release()
     assert(_ref > 0);
     _ref --;
     if ( 0 == _ref && !_no_delete ) {
-    	m_bNoDelete = true;
+    	_no_delete = true;
     	delete this;
     }
 #endif
@@ -61,7 +61,7 @@ void RefCounter::Release()
 int RefCounter::GetRefCnt() const
 {
 #if defined(_WIN32)
-	return InterlockedExchangeAdd(const_cast<volatile LONG*>(&m_lRef), 0);
+	return InterlockedExchangeAdd(const_cast<volatile LONG*>(&_ref), 0);
 #elif __GNUC__ >= 4
     return __sync_fetch_and_sub(const_cast<volatile int*>(&_ref), 0);
 #else

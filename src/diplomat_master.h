@@ -27,6 +27,8 @@ public:
 	void BuildDiplomat(struct event_base *base,
     evutil_socket_t sock, struct sockaddr *addr, int len);
 
+    void FreeAllDiplomat();
+
 private:
 	void FreeDiplomat(struct bufferevent *bev);
 private:

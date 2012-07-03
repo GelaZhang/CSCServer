@@ -10,7 +10,7 @@
 
 #include "event.h"
 
-void EnvMaster::SetLogInterface(log_interface interface) {
+void EnvMaster::SetLogInterface(log_interface fn) {
 
-	event_set_log_callback(interface);
+	event_set_log_callback(fn);
 }

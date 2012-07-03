@@ -8,6 +8,7 @@
 #ifndef NET_SERVICE_H_
 #define NET_SERVICE_H_
 
+#include "util/thread.h"
 #include "diplomat_master.h"
 
 struct event_base;
@@ -46,13 +47,23 @@ private:
 	static void BuildDiplomat(struct evconnlistener *listener,
     evutil_socket_t sock, struct sockaddr *addr, int len, void *ptr);
 
-	static void* event_loop(void *);
+private:
+    class EventThread : public Utility::Thread {
+
+    public:
+        EventThread(event_base *);
+        void run();
+        
+    private:
+        event_base *_event_base;
+    };
+    typedef Utility::SmartPtr<EventThread> EventThreadPtr;
 private:
 	event_base **_event_base;
 	event **_event_hold_base;
 	int _e_base_index;
 	int _concurrent_num;
-	pthread_t *_event_thread;
+	EventThreadPtr *_event_thread;
 	evconnlistener  *_event_listener;
 	short int _net_port;
 
