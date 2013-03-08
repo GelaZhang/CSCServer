@@ -40,6 +40,10 @@ public:
 	 * \brief 清除网络服务，必须先Stop才能UnInit
 	 */
 	int UnInit();
+
+	void Dump() {
+		_master.Dump();
+	}
 private:
 
 	static void DealwithNetError(struct evconnlistener *lis, void *ptr);

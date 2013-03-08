@@ -18,6 +18,7 @@ extern "C" {
 }
 
 #include "embassy.h"
+#include "syslog.h"
 
 using namespace std;
 DiplomatMaster::DiplomatMaster() :
@@ -124,8 +125,8 @@ void DiplomatMaster::ReadCB(struct bufferevent *bev, void *ctx) {
         event_msgx("bev had been free, abandon recv data");
         return;
     }
-	master->_embassy->RecvSomething(diplomat);
-	printf("read something\n");
+	int cnt = master->_embassy->RecvSomething(diplomat);
+	diplomat->GetMethod(cnt);
 }
 
 void DiplomatMaster::EventCB(struct bufferevent *bev, short events, void *ctx) {
@@ -142,4 +143,12 @@ void DiplomatMaster::EventCB(struct bufferevent *bev, short events, void *ctx) {
     	master->FreeDiplomat(bev);
     }
     printf("buffer event\n");
+}
+
+void DiplomatMaster::Dump() {
+	syslog(LOG_INFO, "ID	IP	PORT	METHOD	RECV	SEND\n");
+	for ( DiplomatDic::iterator itor = _diplomat_dic.begin(); itor != _diplomat_dic.end();
+		++ itor) {
+			itor->second->Dump();
+	}
 }

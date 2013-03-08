@@ -29,6 +29,7 @@ public:
 
     void FreeAllDiplomat();
 
+	void Dump();
 private:
 	void FreeDiplomat(struct bufferevent *bev);
 private:

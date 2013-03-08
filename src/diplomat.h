@@ -20,6 +20,11 @@
 
 #include "def.h"
 
+class Memo : public Utility::RefCounter{
+
+};
+typedef Utility::SmartPtr<Memo> MemoPtr;
+
 class Diplomat : public Utility::RefCounter {
 
 public:
@@ -27,7 +32,7 @@ public:
 	 * \brief write data to socket.
 	 * \return kOK when success, otherwise fail
 	 */
-	int Speek(BYTE *content, int len);
+	int Speek(const BYTE *content, int len);
 	/**
 	 * \brief get read data length that no Read by you
 	 *
@@ -77,6 +82,15 @@ public:
 	inline const std::string &Id() {
 		return _id;
 	}
+
+	void SetMemo(const MemoPtr &memo) {_memo = memo;}
+	MemoPtr &GetMemo() {return _memo;}
+
+	void GetMethod(int num) {
+		_method_num += num;
+	}
+
+	void Dump();
 private:
 	friend class DiplomatMaster;
 	/**
@@ -103,6 +117,11 @@ private:
 	Mutex _mutex_speek;
 	char _ip[INET_ADDRSTRLEN + 1];
 	unsigned int _port;
+	MemoPtr _memo;
+
+	int _method_num;//收到的包个数。
+	size_t _recv_cnt;//收到的数据量
+	size_t _send_cnt;//发送的数据量
 };
 
 typedef Utility::SmartPtr<Diplomat> DiplomatPtr;
