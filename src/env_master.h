@@ -8,12 +8,11 @@
 #ifndef ENV_MASTER_H_
 #define ENV_MASTER_H_
 
-typedef void (*log_interface)(int severity, const char *msg);
 
 class EnvMaster {
 
 public:
-	void SetLogInterface(log_interface fn);
+	void SetLogInterface();
 };
 
 

@@ -7,9 +7,9 @@
 #include "diplomat.h"
 #ifndef WIN32
 #include <strings.h>
-
 #include <arpa/inet.h>
 #else
+#include <tchar.h>
 #include <string.h>
 #endif
 
@@ -17,7 +17,6 @@
 #include "event.h"
 
 #include "def.h"
-#include "syslog.h"
 
 using namespace std;
 
@@ -82,12 +81,13 @@ size_t Diplomat::ReadMassage(BYTE *content, size_t buffer_length, size_t length_
 		buffer_length = buffer_length > len ? len : buffer_length;
 	}
 	size_t cnt = bufferevent_read(_bev, content, buffer_length);
+	content[cnt] = '\0';
 	_recv_cnt += cnt;
 	return cnt;
 }
 
 
 void Diplomat::Dump() {
-	syslog(LOG_INFO, "%s	%s	%d	%d	%d	%d\n", 
-		_id.c_str(), _ip, _port, _method_num, _recv_cnt, _send_cnt);
+	AppLog(APP_LOG_INFO, _T("%d	%d	%d	%d\n"), 
+		_port, _method_num, _recv_cnt, _send_cnt);
 }

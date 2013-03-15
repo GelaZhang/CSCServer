@@ -13,8 +13,7 @@
 
 #include <string>
 
-#include <syslog.h>
-
+#include "def.h"
 #include "../protocol_def.h"
 
 using namespace Net;
@@ -38,7 +37,7 @@ bool Order::Excute(const DiplomatPtr &diplomat, const char* command_id) {
     	return true;
 
     } else {
-    	syslog(LOG_DEBUG, "net: send order  fail");
+    	AppLog(APP_LOG_DEBUG, L"net: send order  fail");
     	return false;
     }
 	return true;

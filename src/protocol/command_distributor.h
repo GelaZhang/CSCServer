@@ -49,6 +49,7 @@ class CommandDistributor  : public Embassy{
 
 	static const int kMaxLengthOfHeader;
 	static const int kMaxLengthOfMethod;
+	static const int kMaxBuffer;
 	class DiplomatMemo: public Memo {
 
 	public:
@@ -57,7 +58,7 @@ class CommandDistributor  : public Embassy{
 			_header_got = false;
 			_header_length = 0;
 			_buffer_length = 2048;
-			_buffer = new unsigned char[_buffer_length];
+			_buffer = new unsigned char[_buffer_length + 1];
 			_buffer_offset = 0;
 		}
 
@@ -71,10 +72,13 @@ class CommandDistributor  : public Embassy{
 		*	\brief 检查存储容量是否充足，不能满足length字节空间，则自动进行扩容
 		*/
 		void PrepareCapacity(size_t length) {
-			if ( _buffer_offset + length > _buffer_length ) {
+			if ( _buffer_offset + length >= _buffer_length && _buffer_length < kMaxBuffer ) {
 				size_t size = _buffer_offset + length + 1024;
-				unsigned char* tmp = new unsigned char[size];
-				memcpy(tmp, _buffer, _buffer_length);
+				size = size > kMaxBuffer ? kMaxBuffer : size;
+				unsigned char* tmp = new unsigned char[size + 1];
+				if ( !tmp )
+					return;
+				memcpy(tmp, _buffer, _buffer_offset);
 				_buffer_length = size;
 				delete []_buffer;
 				_buffer = tmp;
@@ -87,6 +91,7 @@ class CommandDistributor  : public Embassy{
 				_buffer_offset = 0;
 			} else {
 				_buffer_offset -= size;
+				memcpy(_buffer, _buffer + size, _buffer_offset);
 			}
 		}
 		ProtocolHeader _header;

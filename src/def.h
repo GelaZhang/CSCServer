@@ -22,5 +22,16 @@ enum ErrorCode {
 	kLibEventErr  //something wrong with libevent
 };
 
+#define APP_LOG_DEBUG 0
+#define APP_LOG_INFO   1
+#define APP_LOG_WARN  2
+#define APP_LOG_ERR   3
+
+#include "log4cxx/logger.h"
+#include "log4cxx/PropertyConfigurator.h"
+
+void __cdecl AppLog(int level, const wchar_t *format, ...);
+
+void __cdecl AppLog(int level, const char *format, ...);
 
 #endif /* DEF_H_ */

@@ -6,12 +6,12 @@
  */
 #include "command_distributor.h"
 
+#include <tchar.h>
 #include <sstream>
-
-#include <syslog.h>
 
 #include "tinyxml.h"
 
+#include "def.h"
 #include "protocol_def.h"
 
 #include "order/sys_time_sender.h"
@@ -29,6 +29,7 @@ const char ProtocolHeader::kProtocolSeparator2[] = "\r\n";
 
 const int CommandDistributor::kMaxLengthOfHeader = 1024;
 const int CommandDistributor::kMaxLengthOfMethod = 64 * 1024;
+const int CommandDistributor::kMaxBuffer = 64 * 1024;
 CommandDistributor::CmdMap CommandDistributor::s_cmds;
 
 ProtocolHeader::ProtocolHeader() {
@@ -59,15 +60,15 @@ int CommandDistributor::RecvSomething(const DiplomatPtr &diplomat) {
 	size_t length = diplomat->GetMassageLength();
 	if ( length <= 0 ) {
 
-		syslog(LOG_ERR,
-			"net: didn't recv anything\n");
+		AppLog(APP_LOG_ERR,
+			_T("net: didn't recv anything\n") );
 		return 0;
 	}
 
 	DiplomatMemoPtr memo = (DiplomatMemo*)(diplomat->GetMemo().get());
 	memo->PrepareCapacity(length);
 	memo->_buffer_offset += diplomat->ReadMassage(memo->_buffer + memo->_buffer_offset,
-		memo->_buffer_length-memo->_buffer_offset, length);
+		memo->_buffer_length - memo->_buffer_offset, length);
 
 	int cmd_cnt = 0;
 	int cursor = 0;
@@ -88,8 +89,10 @@ int CommandDistributor::RecvSomething(const DiplomatPtr &diplomat) {
 
 			ProtocolHeader &header =memo->_header;
 			if ( header.size <= length - cursor ) {
-
+				char tmp = buffer[cursor + header.size];
+				buffer[cursor + header.size] = '\0';
 				ParseCommand(diplomat, buffer + cursor, header.version);
+				buffer[cursor + header.size] = tmp;
 				cursor += header.size;
 
 				memo->_header_got = false;
@@ -103,7 +106,7 @@ int CommandDistributor::RecvSomething(const DiplomatPtr &diplomat) {
 			} else {
 
 #if ENABLE_DEBUG_LOG
-				syslog(LOG_INFO, "net: no recv a complete pagkage; size:%d recv:%d ",
+				AppLog(APP_LOG_INFO, _T("net: no recv a complete pagkage; size:%d recv:%d "),
 						header.size, length - cursor);
 #endif
 				break;
@@ -143,7 +146,7 @@ int CommandDistributor::ParseProtocolHeader(
             header.protocol, sizeof(header.protocol) -1 );
     if (  NULL == tmp ) {
 
-        syslog(LOG_ERR, "net: protocol header do no include protocol keyword\n");
+        AppLog(APP_LOG_ERR, _T("net: protocol header do no include protocol keyword\n") );
         return -1;
     }
 
@@ -151,7 +154,7 @@ int CommandDistributor::ParseProtocolHeader(
             header.version, sizeof(header.version) -1 );
     if (  NULL == tmp ) {
 
-        syslog(LOG_ERR, "net: protocol header do no include %s keyword: %s\n",
+        AppLog(APP_LOG_ERR, _T("net: protocol header do no include %s keyword: %s\n"),
         		header.kProtocolVersion, data);
         return -1;
     }
@@ -160,7 +163,7 @@ int CommandDistributor::ParseProtocolHeader(
             header.pubkey, sizeof(header.pubkey) - 1 );
     if (  NULL == tmp ) {
 
-        syslog(LOG_ERR, "net: protocol header do no include pub-key keyword\n");
+        AppLog(APP_LOG_ERR, _T("net: protocol header do no include pub-key keyword\n"));
         return -1;
     }
 
@@ -170,7 +173,7 @@ int CommandDistributor::ParseProtocolHeader(
             size, sizeof(size) - 1 );
     if (  NULL == tmp ) {
 
-        syslog(LOG_ERR, "net: protocol header do no include size keyword\n");
+        AppLog(APP_LOG_ERR, _T("net: protocol header do no include size keyword\n"));
         return -1;
     }
     header.size = atoi(size);
@@ -179,7 +182,7 @@ int CommandDistributor::ParseProtocolHeader(
             size, sizeof(size) - 1 );
     if ( foo && foo - data + 1 < ret )
     {
-        syslog(LOG_ERR, "net: there are two 'size' keyword between cmd id\n");
+        AppLog(APP_LOG_ERR, _T("net: there are two 'size' keyword between cmd id\n"));
         return -1;
     }
 
@@ -198,8 +201,8 @@ int CommandDistributor::GetProtocolHeader(
 		for ( int i = 0;length - cursor > kMaxLengthOfHeader && 0 == ret; i ++) {
 
 			if ( i == 0)
-				syslog(LOG_INFO,
-				"net: buf is more than max haeder len but do not recv header\n");
+				AppLog(APP_LOG_INFO,
+				_T("net: buf is more than max haeder len but do not recv header\n"));
 			cursor += strlen(memo->_header.kProtocolStart); //丢弃第一个关键字长度
 
 			ret = ParseProtocolHeader(buffer + cursor, memo);
@@ -214,7 +217,7 @@ int CommandDistributor::GetProtocolHeader(
 	if ( -1 == ret ) {
 
 		cursor += memo->_header_length;
-		syslog(LOG_INFO, "net: recv illegal package\n");
+		AppLog(APP_LOG_INFO, _T("net: recv illegal package\n"));
 		return 1;
 
 	} else {
@@ -223,7 +226,7 @@ int CommandDistributor::GetProtocolHeader(
 		return 0;
 	}
 
-	syslog(LOG_ERR, "net: out of control");
+	AppLog(APP_LOG_ERR, _T("net: out of control"));
 	return 0;
 }
 
@@ -262,8 +265,7 @@ int CommandDistributor::ParseCommand(const DiplomatPtr &diplomat,
 	commands.Parse(content);
 	TiXmlElement *root_ele = commands.RootElement();
 	if (root_ele == NULL) {
-
-		syslog(LOG_ERR, "net: get root element error");
+		AppLog(APP_LOG_ERR, _T("net: get root element error"));
 		return 0;
 	}
 
@@ -274,20 +276,20 @@ int CommandDistributor::ParseCommand(const DiplomatPtr &diplomat,
 
 		TiXmlElement *name_ele = method_ele->FirstChildElement("name");
 		if (NULL == name_ele) {
-			syslog(LOG_ERR, "net: can not find method name node");
+			AppLog(APP_LOG_ERR, _T("net: can not find method name node"));
 			continue;
 		}
 
 		const char* cmd_id = name_ele->Attribute("id");
 		const char* name = name_ele->GetText();
 		if	( !name || !cmd_id ) {
-			syslog(LOG_ERR, "net: can not find method name value");
+			AppLog(APP_LOG_ERR, _T("net: can not find method name value"));
 			continue;
 		}
 
 		TiXmlElement *params_ele = method_ele->FirstChildElement("params");
 		if ( NULL == params_ele ) {
-			syslog(LOG_ERR, "net: method:%s parameter is invalid", name);
+			AppLog(APP_LOG_ERR, _T("net: method:%s parameter is invalid"), name);
 			continue;
 		}
 
@@ -296,7 +298,7 @@ int CommandDistributor::ParseCommand(const DiplomatPtr &diplomat,
 			cmd->second->Excute(diplomat, params_ele, version, cmd_id);
 
 		} else {
-			syslog(LOG_DEBUG, "net: method no handle :%s", name);
+			AppLog(APP_LOG_DEBUG, _T("net: method no handle :%s"), name);
 
 		}
 

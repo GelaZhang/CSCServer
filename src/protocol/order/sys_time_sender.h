@@ -27,7 +27,7 @@ public:
 protected:
 	virtual void PrepareCommand(const DiplomatPtr &diplomat, const char* command_id) {
 
-	    syslog(LOG_INFO, "net: send system time");
+	    AppLog(APP_LOG_INFO, _T("net: send system time"));
 
         time_t t = time(NULL);
         tm utc_t;

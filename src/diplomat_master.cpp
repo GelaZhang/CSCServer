@@ -7,6 +7,7 @@
 
 #include "diplomat_master.h"
 
+#include <tchar.h>
 #include <errno.h>
 #include <string.h>
 #include <assert.h>
@@ -17,8 +18,8 @@ extern "C" {
 #include "log-internal.h"
 }
 
+#include "def.h"
 #include "embassy.h"
-#include "syslog.h"
 
 using namespace std;
 DiplomatMaster::DiplomatMaster() :
@@ -46,8 +47,6 @@ void DiplomatMaster::BuildDiplomat(struct event_base *base,
 	_id_master.GetIdentity(id);
 	DiplomatPtr diplomat = new Diplomat(bev, id, addr, len);
 
-	bufferevent_setcb(bev, ReadCB, NULL, EventCB, this);
-
 	{
 		AutoMutex auto_mutex(_mutex);
 		DiplomatDic::iterator diplomat_itor = _diplomat_dic.find(bev);
@@ -57,6 +56,8 @@ void DiplomatMaster::BuildDiplomat(struct event_base *base,
 		}
 		_diplomat_dic[bev] = diplomat;
 	}
+	bufferevent_setwatermark(bev, EV_READ, 40, 64*1024);
+	bufferevent_setcb(bev, ReadCB, NULL, EventCB, this);
 	//By default, a newly created bufferevent has writing enabled, but not reading.
 	//so enable reading here
 	bufferevent_enable(bev, EV_READ | EV_WRITE);
@@ -142,11 +143,16 @@ void DiplomatMaster::EventCB(struct bufferevent *bev, short events, void *ctx) {
     if (events & (BEV_EVENT_EOF | BEV_EVENT_ERROR)) {
     	master->FreeDiplomat(bev);
     }
+#if _DEBUG
     printf("buffer event\n");
+#endif
 }
 
 void DiplomatMaster::Dump() {
-	syslog(LOG_INFO, "ID	IP	PORT	METHOD	RECV	SEND\n");
+	AppLog(APP_LOG_INFO, _T("ID	IP	PORT	METHOD	RECV	SEND\n"));
+// 	for ( int i = 0; i < 150; i ++ )
+// 		AppLog(APP_LOG_INFO, _T("ID	IP	PORT	METHOD	RECV	SEND\n"));
+	AutoMutex auto_mutex(_mutex);
 	for ( DiplomatDic::iterator itor = _diplomat_dic.begin(); itor != _diplomat_dic.end();
 		++ itor) {
 			itor->second->Dump();

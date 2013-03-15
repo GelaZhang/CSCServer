@@ -31,6 +31,8 @@ extern "C" {
 
 #include "def.h"
 
+#include "env_master.h"
+
 NetService::NetService(short int net_port) {
 
 	_net_port = net_port;
@@ -54,6 +56,8 @@ void event_cb_fn(evutil_socket_t, short, void *) {
 
 int NetService::Init(Embassy *embassy, int concurrent_num) {
 
+	EnvMaster env;
+	env.SetLogInterface();
 #ifdef WIN32
     WSADATA wsd;
     if ( 0 != WSAStartup(MAKEWORD(2,2), &wsd) )
