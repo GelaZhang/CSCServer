@@ -150,8 +150,6 @@ void DiplomatMaster::EventCB(struct bufferevent *bev, short events, void *ctx) {
 
 void DiplomatMaster::Dump() {
 	AppLog(APP_LOG_INFO, _T("ID	IP	PORT	METHOD	RECV	SEND\n"));
-// 	for ( int i = 0; i < 150; i ++ )
-// 		AppLog(APP_LOG_INFO, _T("ID	IP	PORT	METHOD	RECV	SEND\n"));
 	AutoMutex auto_mutex(_mutex);
 	for ( DiplomatDic::iterator itor = _diplomat_dic.begin(); itor != _diplomat_dic.end();
 		++ itor) {

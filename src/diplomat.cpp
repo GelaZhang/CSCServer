@@ -88,6 +88,6 @@ size_t Diplomat::ReadMassage(BYTE *content, size_t buffer_length, size_t length_
 
 
 void Diplomat::Dump() {
-	AppLog(APP_LOG_INFO, _T("%d	%d	%d	%d\n"), 
+	AppLog(APP_LOG_INFO, "%s	%s	%d	%d	%d	%d", _id.c_str(), _ip,
 		_port, _method_num, _recv_cnt, _send_cnt);
 }

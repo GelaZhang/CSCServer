@@ -15,27 +15,22 @@ using namespace log4cxx::helpers;
 void log_interface(int severity, const char *msg) {
 	static log4cxx::LoggerPtr logger(Logger::getLogger("Libevent"));
 	printf("%s", msg);
-// 	switch(severity) {
-// 	case EVENT_LOG_DEBUG:
-// 		logger->debug(msg);
-// 		//LOG4CXX_DEBUG(logger, msg);
-// 		break;
-// 	case EVENT_LOG_MSG:
-// 		logger->info(msg);
-// 		//LOG4CXX_INFO(logger, msg);
-// 		break;
-// 	case EVENT_LOG_WARN:
-// 		logger->warn(msg);
-// 		//LOG4CXX_WARN(logger, msg);
-// 		break;
-// 	case EVENT_LOG_ERR:
-// 		logger->error(msg);
-// 		//LOG4CXX_ERROR(logger, msg);
-// 		break;
-// 	default:
-// 		logger->debug(msg);
-// 		//LOG4CXX_DEBUG(logger, msg);
-// 	}
+	switch(severity) {
+	case EVENT_LOG_DEBUG:
+		logger->debug(msg);
+		break;
+	case EVENT_LOG_MSG:
+		logger->info(msg);
+		break;
+	case EVENT_LOG_WARN:
+		logger->warn(msg);
+		break;
+	case EVENT_LOG_ERR:
+		logger->error(msg);
+		break;
+	default:
+		logger->debug(msg);
+	}
 }
 
 void EnvMaster::SetLogInterface() {
@@ -58,23 +53,18 @@ void __cdecl AppLog(int level, const wchar_t *format, ...)
 	switch(level) {
 	case APP_LOG_DEBUG:
 		logger->debug(szBuffer);
-		//LOG4CXX_DEBUG(logger, szBuffer);
 		break;
 	case APP_LOG_INFO:
 		logger->info(szBuffer);
-		//LOG4CXX_INFO(logger, szBuffer);
 		break;
 	case APP_LOG_WARN:
 		logger->warn(szBuffer);
-		//LOG4CXX_WARN(logger, szBuffer);
 		break;
 	case APP_LOG_ERR:
 		logger->error(szBuffer);
-		//LOG4CXX_ERROR(logger, szBuffer);
 		break;
 	default:
 		logger->debug(szBuffer);
-		//LOG4CXX_DEBUG(logger, szBuffer);
 	}
 
 }
@@ -93,23 +83,19 @@ void __cdecl AppLog(int level, const char *format, ...)
 	switch(level) {
 	case APP_LOG_DEBUG:
 		logger->debug(szBuffer);
-		//LOG4CXX_DEBUG(logger, szBuffer);
 		break;
 	case APP_LOG_INFO:
 		logger->info(szBuffer);
-		//LOG4CXX_INFO(logger, szBuffer);
 		break;
 	case APP_LOG_WARN:
 		logger->warn(szBuffer);
-		//LOG4CXX_WARN(logger, szBuffer);
 		break;
 	case APP_LOG_ERR:
 		logger->error(szBuffer);
-		//LOG4CXX_ERROR(logger, szBuffer);
 		break;
 	default:
 		logger->debug(szBuffer);
-		//LOG4CXX_DEBUG(logger, szBuffer);
+
 	}
 
 }
