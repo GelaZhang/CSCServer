@@ -17,7 +17,7 @@
 #define snprintf _snprintf
 #endif
 
-namespace Net {
+namespace CSCServer {
 
 class SysTimeSender : public Order {
 

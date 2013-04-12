@@ -15,7 +15,7 @@
 #include "def.h"
 #include "../order/ack_sender.h"
 
-namespace Net {
+namespace CSCServer {
 
 class EchoController : public Command{
 

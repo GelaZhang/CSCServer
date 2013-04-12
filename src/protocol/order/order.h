@@ -11,9 +11,9 @@
 #include "tinyxml.h"
 
 #include "diplomat.h"
-#include "../command_distributor.h"
+#include "../default_protocol.h"
 
-namespace Net {
+namespace CSCServer {
 
 class Order {
 

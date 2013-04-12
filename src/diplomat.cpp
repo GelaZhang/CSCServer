@@ -19,8 +19,9 @@
 #include "def.h"
 
 using namespace std;
+using namespace CSCServer;
 
-Diplomat::Diplomat(struct bufferevent *bev, const string &id,
+Diplomat::Diplomat(bufferevent *bev, const string &id,
 		struct sockaddr *addr, int len) :
 _id(id) {
 

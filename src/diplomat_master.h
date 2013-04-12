@@ -14,6 +14,7 @@
 #include "diplomat.h"
 #include "util/identity_master.h"
 #include "embassy.h"
+namespace CSCServer {
 
 class DiplomatMaster {
 
@@ -22,7 +23,7 @@ public:
 
 	DiplomatMaster();
 
-	void SetEmbassy(Embassy *embassy);
+	void SetEmbassy(CSCServer::Embassy *embassy);
 
 	void BuildDiplomat(struct event_base *base,
     evutil_socket_t sock, struct sockaddr *addr, int len);
@@ -40,11 +41,11 @@ private:
 
 private:
 	ProtocolDic _protocol_dic;
-	Embassy *_embassy;
+	CSCServer::Embassy *_embassy;
 	IdentityMaster _id_master;
 
 	Mutex _mutex;
 
 };
-
+};
 #endif /* DIPLOMAT_MASTER_H_ */

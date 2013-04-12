@@ -10,7 +10,7 @@
 #include <stdio.h>
 
 #include "def.h"
-
+using namespace CSCServer;
 int Protocol::GarrisonDiplomat() {
 
 	printf("diplomat %s garrison", _diplomat->Id().c_str());

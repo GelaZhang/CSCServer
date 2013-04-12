@@ -1,15 +1,15 @@
 #include "default_factory.h"
-#include "command_distributor.h"
+#include "default_protocol.h"
 #include "command/echo_controller.h"
-using namespace Net;
+using namespace CSCServer;
 ProtocolPtr DefaultFactory::BuildProtocol(const DiplomatPtr &diplomat) {
-	return new CommandDistributor(diplomat);
+	return new DefaultProtocol(diplomat);
 }
 	/**
 	*	\brief 启动协议工厂，内部自动调用， 在此做一些初始化操作
 	*/
 void DefaultFactory::StartEmbassy() {
-	CommandDistributor::RegisterCommand(
+	DefaultProtocol::RegisterCommand(
 		new EchoController("Echo"));
 
 }

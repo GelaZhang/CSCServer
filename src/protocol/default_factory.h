@@ -4,7 +4,7 @@
 */
 
 #include "embassy.h"
-
+namespace CSCServer {
 class DefaultFactory : public Embassy {
 
 		/**
@@ -19,4 +19,5 @@ class DefaultFactory : public Embassy {
 	*	\brief 停止协议工厂，内部自动调用，在此做一些清除操作
 	*/
 	virtual void StopEmbassy();
+};
 };

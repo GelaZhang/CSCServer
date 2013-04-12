@@ -18,6 +18,7 @@
 #include "diplomat.h"
 #include "protocol.h"
 
+namespace CSCServer {
 class Embassy {
 
 public:
@@ -36,5 +37,5 @@ public:
 	virtual void StopEmbassy();
 };
 
-
+};
 #endif /* EMBASSY_H_ */

@@ -6,3 +6,8 @@ a、StartUML
 2、外部库依懒
 a、libevent-2.0.19-stable
 b、log4cxx-0.10.0
+
+3、使用须知
+a、直接使用NetService类 可参考main.cpp的使用
+   可以根据实际情况调用NetService::Init的时候传入对应的协议工厂，以及线程并发数（一般建议CPU个数+ 2）
+b、继承Embassy接口实现自己的协议工厂类，其中还必须实现自己协议解析类；可参考protocol目录下的实现；

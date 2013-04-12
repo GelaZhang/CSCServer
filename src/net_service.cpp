@@ -33,6 +33,7 @@ extern "C" {
 
 #include "env_master.h"
 
+using namespace CSCServer;
 NetService::NetService(short int net_port) {
 
 	_net_port = net_port;
@@ -52,7 +53,9 @@ NetService::~NetService() {
 }
 
 void event_cb_fn(evutil_socket_t, short, void *) {
+#if _DEBUG
 	printf("event cb fn\n");
+#endif
 }
 
 int NetService::Init(Embassy *embassy, int concurrent_num) {

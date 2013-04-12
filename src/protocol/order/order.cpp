@@ -16,7 +16,7 @@
 #include "def.h"
 #include "../protocol_def.h"
 
-using namespace Net;
+using namespace CSCServer;
 using namespace std;
 
 int Order::s_id = 0;

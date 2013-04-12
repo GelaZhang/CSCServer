@@ -13,6 +13,7 @@
 
 struct event_base;
 struct evconnlistener;
+namespace CSCServer {
 class Embassy;
 
 class NetService {
@@ -23,6 +24,7 @@ public:
 	/**
 	 * \brief 初始化网络服务
 	 * \param[in] embassy is the office of the diplomat
+	 * \param[in] concurrent_num 并发数，即线程个数
 	 */
 	int Init(Embassy *embassy, int concurrent_num);
 
@@ -73,6 +75,6 @@ private:
 	Embassy *_embassy;
 	DiplomatMaster _master;
 };
-
+};
 
 #endif /*NET_SERVICE_H_*/

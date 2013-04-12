@@ -16,7 +16,7 @@
  */
 
 #include "diplomat.h"
-
+namespace CSCServer {
 class Protocol : public Utility::RefCounter {
 public:
 	Protocol(const DiplomatPtr &diplomat) {
@@ -33,5 +33,5 @@ protected:
 	DiplomatPtr _diplomat;
 };
 typedef Utility::SmartPtr<Protocol> ProtocolPtr;
-
+};
 #endif /* PROTOCOL_H_ */

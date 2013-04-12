@@ -19,7 +19,7 @@
 #include "protocol/command/echo_controller.h"
 
 #pragma comment(lib, "log4cxx.lib")
-using namespace Net;
+using namespace CSCServer;
 #if _DEBUG
 struct State {
 	DiplomatPtr diplomat;

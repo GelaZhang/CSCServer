@@ -22,18 +22,20 @@ extern "C" {
 #include "embassy.h"
 
 using namespace std;
-DiplomatMaster::DiplomatMaster() :
+using namespace CSCServer;
+
+CSCServer::DiplomatMaster::DiplomatMaster() :
 _id_master("")	{
 
 	_embassy = NULL;
 }
 
-void DiplomatMaster::SetEmbassy(Embassy *embassy) {
+void CSCServer::DiplomatMaster::SetEmbassy(Embassy *embassy) {
 
 	_embassy = embassy;
 }
 
-void DiplomatMaster::BuildDiplomat(struct event_base *base,
+void CSCServer::DiplomatMaster::BuildDiplomat(struct event_base *base,
 	    evutil_socket_t sock, struct sockaddr *addr, int len) {
 
     
@@ -67,7 +69,7 @@ void DiplomatMaster::BuildDiplomat(struct event_base *base,
 	printf("new socket :%s:%d\n", diplomat->IP(), diplomat->Port());
 }
 
-void DiplomatMaster::FreeAllDiplomat() {
+void CSCServer::DiplomatMaster::FreeAllDiplomat() {
 
     AutoMutex auto_mutex(_mutex);
     for ( ProtocolDic::iterator protocol_itor = _protocol_dic.begin(); 
@@ -85,7 +87,7 @@ void DiplomatMaster::FreeAllDiplomat() {
     _protocol_dic.clear();
 }
 
-void DiplomatMaster::FreeDiplomat(struct bufferevent *bev) {
+void CSCServer::DiplomatMaster::FreeDiplomat(struct bufferevent *bev) {
 
 	ProtocolPtr pro = NULL;
 	{
@@ -108,7 +110,7 @@ void DiplomatMaster::FreeDiplomat(struct bufferevent *bev) {
 
 }
 
-void DiplomatMaster::ReadCB(struct bufferevent *bev, void *ctx) {
+void CSCServer::DiplomatMaster::ReadCB(struct bufferevent *bev, void *ctx) {
 
 	DiplomatMaster *master = reinterpret_cast<DiplomatMaster*>(ctx);
 	assert(master);
@@ -129,7 +131,7 @@ void DiplomatMaster::ReadCB(struct bufferevent *bev, void *ctx) {
 	pro->GetDiplomat()->GetMethod(cnt);
 }
 
-void DiplomatMaster::EventCB(struct bufferevent *bev, short events, void *ctx) {
+void CSCServer::DiplomatMaster::EventCB(struct bufferevent *bev, short events, void *ctx) {
 
 	DiplomatMaster *master = reinterpret_cast<DiplomatMaster*>(ctx);
 	assert(master);
@@ -147,7 +149,7 @@ void DiplomatMaster::EventCB(struct bufferevent *bev, short events, void *ctx) {
 #endif
 }
 
-void DiplomatMaster::Dump() {
+void CSCServer::DiplomatMaster::Dump() {
 	AppLog(APP_LOG_INFO, _T("ID	IP	PORT	METHOD	RECV	SEND\n"));
 	AutoMutex auto_mutex(_mutex);
 	for ( ProtocolDic::iterator itor = _protocol_dic.begin(); itor != _protocol_dic.end();

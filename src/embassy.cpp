@@ -11,6 +11,7 @@
 
 #include "def.h"
 
+using namespace CSCServer;
 ProtocolPtr Embassy::BuildProtocol(const DiplomatPtr &diplomat) {
 
 	 

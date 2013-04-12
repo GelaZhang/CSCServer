@@ -16,7 +16,7 @@
 
 class TiXmlElement;
 
-namespace Net {
+namespace CSCServer {
 
 class Command : public Utility::RefCounter {
 

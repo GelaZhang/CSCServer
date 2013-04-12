@@ -8,12 +8,12 @@
 #ifndef ENV_MASTER_H_
 #define ENV_MASTER_H_
 
-
+namespace CSCServer {
 class EnvMaster {
 
 public:
 	void SetLogInterface();
 };
 
-
+};
 #endif /* ENV_MASTER_H_ */

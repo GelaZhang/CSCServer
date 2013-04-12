@@ -12,6 +12,7 @@
 #include "def.h"
 using namespace log4cxx;
 using namespace log4cxx::helpers;
+using namespace CSCServer;
 void log_interface(int severity, const char *msg) {
 	static log4cxx::LoggerPtr logger(Logger::getLogger("Libevent"));
 	printf("%s", msg);

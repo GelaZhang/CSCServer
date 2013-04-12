@@ -10,7 +10,7 @@
 
 #include "order.h"
 
-namespace Net {
+namespace CSCServer {
 
 
 class AckSender : public Order {
