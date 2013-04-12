@@ -13,7 +13,7 @@
 
 #include "diplomat.h"
 #include "command/command.h"
-#include "embassy.h"
+#include "protocol.h"
 
 namespace Net {
 
@@ -45,7 +45,7 @@ struct ProtocolHeader {
     std::string BuildHeader(int size, const char *ack_id);
 };
 
-class CommandDistributor  : public Embassy{
+class CommandDistributor  : public Protocol{
 
 	static const int kMaxLengthOfHeader;
 	static const int kMaxLengthOfMethod;
@@ -105,14 +105,14 @@ class CommandDistributor  : public Embassy{
 
 	typedef std::map<std::string, CommandPtr> CmdMap;
 public:
-
-	virtual int GarrisonDiplomat(const DiplomatPtr &diplomat);
-	virtual int WithdrawDiplomat(const DiplomatPtr &diplomat);
+	CommandDistributor(const DiplomatPtr &diplomat);
+	virtual int GarrisonDiplomat();
+	virtual int WithdrawDiplomat();
 	/**
 	 * \brief  进行命令分发。
 	 * \return 返回成功分发的命令数。
 	 */
-	virtual int RecvSomething(const DiplomatPtr &diplomat);
+	virtual int RecvSomething();
 
 	static bool RegisterCommand(const CommandPtr &command);
 private:

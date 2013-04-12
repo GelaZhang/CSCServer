@@ -47,15 +47,6 @@ void DiplomatMaster::BuildDiplomat(struct event_base *base,
 	_id_master.GetIdentity(id);
 	DiplomatPtr diplomat = new Diplomat(bev, id, addr, len);
 
-	{
-		AutoMutex auto_mutex(_mutex);
-		DiplomatDic::iterator diplomat_itor = _diplomat_dic.find(bev);
-		if ( diplomat_itor != _diplomat_dic.end() ) {
-			event_msgx("bev has got a diplomat");
-			_diplomat_dic.erase(diplomat_itor);
-		}
-		_diplomat_dic[bev] = diplomat;
-	}
 	bufferevent_setwatermark(bev, EV_READ, 40, 64*1024);
 	bufferevent_setcb(bev, ReadCB, NULL, EventCB, this);
 	//By default, a newly created bufferevent has writing enabled, but not reading.
@@ -63,71 +54,79 @@ void DiplomatMaster::BuildDiplomat(struct event_base *base,
 	bufferevent_enable(bev, EV_READ | EV_WRITE);
 
 	if ( _embassy ) {
-		_embassy->GarrisonDiplomat(diplomat);
+		ProtocolPtr pro = _embassy->BuildProtocol(diplomat);
+		pro->GarrisonDiplomat();
+		AutoMutex auto_mutex(_mutex);
+		ProtocolDic::iterator protocol_itor = _protocol_dic.find(bev);
+		if ( protocol_itor != _protocol_dic.end() ) {
+			event_msgx("bev has got a diplomat");
+			_protocol_dic.erase(protocol_itor);
+		}
+		_protocol_dic[bev] = pro;
 	}
-
-	printf("new socket :%s:%d\n", _diplomat_dic[bev]->IP(), _diplomat_dic[bev]->Port());
+	printf("new socket :%s:%d\n", diplomat->IP(), diplomat->Port());
 }
 
 void DiplomatMaster::FreeAllDiplomat() {
 
     AutoMutex auto_mutex(_mutex);
-    for ( DiplomatDic::iterator diplomat_itor = _diplomat_dic.begin(); 
-        diplomat_itor != _diplomat_dic.end(); ++ diplomat_itor ) {
+    for ( ProtocolDic::iterator protocol_itor = _protocol_dic.begin(); 
+        protocol_itor != _protocol_dic.end(); ++ protocol_itor ) {
         
-            string id = diplomat_itor->second->Id();
-            if ( _embassy ) {
+            if ( protocol_itor->second ) {
 
-                _embassy->WithdrawDiplomat(diplomat_itor->second);
-            }
-            _id_master.ReleaseIdentity(id);
-
-            printf("socket close id:%s\n", id.c_str());
+                protocol_itor->second->WithdrawDiplomat();
+				string id = protocol_itor->second->GetDiplomat()->Id();
+				_id_master.ReleaseIdentity(id);
+				printf("socket close id:%s\n", id.c_str());
+			}
+            
     }
-    _diplomat_dic.clear();
+    _protocol_dic.clear();
 }
 
 void DiplomatMaster::FreeDiplomat(struct bufferevent *bev) {
 
-	DiplomatPtr diplomat = NULL;
+	ProtocolPtr pro = NULL;
 	{
 		AutoMutex auto_mutex(_mutex);
-		DiplomatDic::iterator diplomat_itor = _diplomat_dic.find(bev);
-		if ( diplomat_itor != _diplomat_dic.end() ) {
-			diplomat = diplomat_itor->second;
-			_diplomat_dic.erase(diplomat_itor);
+		ProtocolDic::iterator protocol_itor = _protocol_dic.find(bev);
+		if ( protocol_itor != _protocol_dic.end() ) {
+			pro = protocol_itor->second;
+			_protocol_dic.erase(protocol_itor);
 		}
 	}
 
-	string id = diplomat->Id();
-	if ( _embassy ) {
+	if ( pro ) {
 
-		_embassy->WithdrawDiplomat(diplomat);
+		pro->WithdrawDiplomat();
+		string id = pro->GetDiplomat()->Id();
+		_id_master.ReleaseIdentity(id);
+
+		printf("socket close id:%s\n", id.c_str());
 	}
-	_id_master.ReleaseIdentity(id);
 
-	printf("socket close id:%s\n", id.c_str());
 }
 
 void DiplomatMaster::ReadCB(struct bufferevent *bev, void *ctx) {
 
 	DiplomatMaster *master = reinterpret_cast<DiplomatMaster*>(ctx);
 	assert(master);
-	DiplomatPtr diplomat = NULL;
+	ProtocolPtr pro = NULL;
 	{
 		AutoMutex auto_mutex(master->_mutex);
-		DiplomatDic::iterator diplomat_itor = master->_diplomat_dic.find(bev);
-		if ( diplomat_itor != master->_diplomat_dic.end() &&  master->_embassy ) {
+		ProtocolDic::iterator protocol_itor = master->_protocol_dic.find(bev);
+		if ( protocol_itor != master->_protocol_dic.end() &&  master->_embassy ) {
 
-			diplomat = diplomat_itor->second;
+			pro = protocol_itor->second;
 		}
 	}
-    if ( !diplomat ) {
+    if ( !pro ) {
         event_msgx("bev had been free, abandon recv data");
         return;
     }
-	int cnt = master->_embassy->RecvSomething(diplomat);
-	diplomat->GetMethod(cnt);
+	int cnt = pro->RecvSomething();
+	pro->GetDiplomat()->GetMethod(cnt);
 }
 
 void DiplomatMaster::EventCB(struct bufferevent *bev, short events, void *ctx) {
@@ -151,8 +150,8 @@ void DiplomatMaster::EventCB(struct bufferevent *bev, short events, void *ctx) {
 void DiplomatMaster::Dump() {
 	AppLog(APP_LOG_INFO, _T("ID	IP	PORT	METHOD	RECV	SEND\n"));
 	AutoMutex auto_mutex(_mutex);
-	for ( DiplomatDic::iterator itor = _diplomat_dic.begin(); itor != _diplomat_dic.end();
+	for ( ProtocolDic::iterator itor = _protocol_dic.begin(); itor != _protocol_dic.end();
 		++ itor) {
-			itor->second->Dump();
+			itor->second->GetDiplomat()->Dump();
 	}
 }

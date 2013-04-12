@@ -17,7 +17,7 @@
 
 class DiplomatMaster {
 
-	typedef std::map<bufferevent *, DiplomatPtr> DiplomatDic;
+	typedef std::map<bufferevent *, ProtocolPtr> ProtocolDic;
 public:
 
 	DiplomatMaster();
@@ -39,7 +39,7 @@ private:
 
 
 private:
-	DiplomatDic _diplomat_dic;
+	ProtocolDic _protocol_dic;
 	Embassy *_embassy;
 	IdentityMaster _id_master;
 

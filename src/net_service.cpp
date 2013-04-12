@@ -42,6 +42,7 @@ NetService::NetService(short int net_port) {
 	_e_base_index = 0;
 	_concurrent_num = 0;
 	_event_thread = NULL;
+	_embassy = NULL;
 }
 
 NetService::~NetService() {
@@ -76,7 +77,7 @@ int NetService::Init(Embassy *embassy, int concurrent_num) {
     if ( !embassy || concurrent_num <= 0 ) {
     	return kError;
     }
-
+	_embassy = embassy;
 	_master.SetEmbassy(embassy);
 
     _event_base = new event_base*[concurrent_num];
@@ -114,12 +115,13 @@ int NetService::Init(Embassy *embassy, int concurrent_num) {
     }
     evconnlistener_set_error_cb(_event_listener, NetService::DealwithNetError);
 
+	
     _e_base_index = (_e_base_index + 1) % _concurrent_num;
 	return kOK;
 }
 
 int NetService::Start() {
-
+	_embassy->StartEmbassy();
 	for ( int i = 0; i < _concurrent_num; i ++ ) {
 		_event_thread[i]->start();
 	}
@@ -128,6 +130,7 @@ int NetService::Start() {
 }
 
 int NetService::Stop() {
+
 	event_msgx("net service stopping");
 
     if ( _event_listener ) {
@@ -155,6 +158,7 @@ int NetService::Stop() {
 		_event_thread[i]->getThreadControl().join();
 
 	}
+	_embassy->StopEmbassy();
 	event_msgx("net service stop");
 	return kOK;
 }

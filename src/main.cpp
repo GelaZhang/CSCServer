@@ -15,7 +15,7 @@
 #include "def.h"
 #include "net_service.h"
 #include "embassy.h"
-#include "protocol/command_distributor.h"
+#include "protocol/default_factory.h"
 #include "protocol/command/echo_controller.h"
 
 #pragma comment(lib, "log4cxx.lib")
@@ -31,9 +31,7 @@ int main(int argc, char* argv[]) {
 
 	log4cxx::PropertyConfigurator::configure("log4cxx.properties");
 
-	CommandDistributor embassy;
-	CommandDistributor::RegisterCommand(
-		new EchoController("Echo"));
+	DefaultFactory embassy;
 	
 	NetService svr(5055);
 	svr.Init(&embassy, 4);

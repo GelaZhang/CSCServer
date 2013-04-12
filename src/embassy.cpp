@@ -11,22 +11,20 @@
 
 #include "def.h"
 
-int Embassy::GarrisonDiplomat(const DiplomatPtr &diplomat) {
+ProtocolPtr Embassy::BuildProtocol(const DiplomatPtr &diplomat) {
 
+	 
 	printf("diplomat %s garrison", diplomat->Id().c_str());
-	return kError;
+	return new Protocol(diplomat);
 }
 
-int Embassy::WithdrawDiplomat(const DiplomatPtr &diplomat) {
+void Embassy::StartEmbassy() {
 
-	printf("diplomat %s withdraw", diplomat->Id().c_str());
-	return kError;
+	printf("Start Embassy");
 }
 
-int Embassy::RecvSomething(const DiplomatPtr &diplomat) {
-	printf("diplomat %s recv something", diplomat->Id().c_str());
-	//diplomat->Speek("read something\n", 15);
+void Embassy::StopEmbassy() {
+	printf("Stop Embassy");
    
-	return kError;
 }
 

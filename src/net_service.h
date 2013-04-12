@@ -70,7 +70,7 @@ private:
 	EventThreadPtr *_event_thread;
 	evconnlistener  *_event_listener;
 	short int _net_port;
-
+	Embassy *_embassy;
 	DiplomatMaster _master;
 };
 

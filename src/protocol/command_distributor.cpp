@@ -52,12 +52,12 @@ string ProtocolHeader::BuildHeader(int size, const char *ack_id) {
 }
 
 
-int CommandDistributor::RecvSomething(const DiplomatPtr &diplomat) {
+int CommandDistributor::RecvSomething() {
 
-	if ( !diplomat )
+	if ( !_diplomat )
 		return 0;
 
-	size_t length = diplomat->GetMassageLength();
+	size_t length = _diplomat->GetMassageLength();
 	if ( length <= 0 ) {
 
 		AppLog(APP_LOG_ERR,
@@ -65,9 +65,9 @@ int CommandDistributor::RecvSomething(const DiplomatPtr &diplomat) {
 		return 0;
 	}
 
-	DiplomatMemoPtr memo = (DiplomatMemo*)(diplomat->GetMemo().get());
+	DiplomatMemoPtr memo = (DiplomatMemo*)(_diplomat->GetMemo().get());
 	memo->PrepareCapacity(length);
-	memo->_buffer_offset += diplomat->ReadMassage(memo->_buffer + memo->_buffer_offset,
+	memo->_buffer_offset += _diplomat->ReadMassage(memo->_buffer + memo->_buffer_offset,
 		memo->_buffer_length - memo->_buffer_offset, length);
 
 	int cmd_cnt = 0;
@@ -78,7 +78,7 @@ int CommandDistributor::RecvSomething(const DiplomatPtr &diplomat) {
 
 		if ( !memo->_header_got ) {
 
-			int ret = GetProtocolHeader(diplomat, buffer, cursor, length);
+			int ret = GetProtocolHeader(_diplomat, buffer, cursor, length);
 			if ( -1 == ret )
 				break;
 			else if ( 1 == ret )
@@ -91,7 +91,7 @@ int CommandDistributor::RecvSomething(const DiplomatPtr &diplomat) {
 			if ( header.size <= length - cursor ) {
 				char tmp = buffer[cursor + header.size];
 				buffer[cursor + header.size] = '\0';
-				ParseCommand(diplomat, buffer + cursor, header.version);
+				ParseCommand(_diplomat, buffer + cursor, header.version);
 				buffer[cursor + header.size] = tmp;
 				cursor += header.size;
 
@@ -309,17 +309,21 @@ int CommandDistributor::ParseCommand(const DiplomatPtr &diplomat,
 
 }
 
-int CommandDistributor::GarrisonDiplomat(const DiplomatPtr &diplomat) {
+CommandDistributor::CommandDistributor(const DiplomatPtr &diplomat) : Protocol(diplomat){
 
-	diplomat->SetMemo(new DiplomatMemo());
+}
+
+int CommandDistributor::GarrisonDiplomat() {
+
+	_diplomat->SetMemo(new DiplomatMemo());
 
 	return 0;
 }
 
 
-int CommandDistributor::WithdrawDiplomat(const DiplomatPtr &diplomat) {
+int CommandDistributor::WithdrawDiplomat() {
 
-	DiplomatMemoPtr memo = (DiplomatMemo*)(diplomat->GetMemo().get());
+	DiplomatMemoPtr memo = (DiplomatMemo*)(_diplomat->GetMemo().get());
 	memo->Drain(-1); //清空接收缓冲
 	return 0;
 }
