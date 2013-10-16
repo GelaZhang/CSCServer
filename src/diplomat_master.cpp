@@ -6,8 +6,9 @@
  */
 
 #include "diplomat_master.h"
-
+#if _WIN32
 #include <tchar.h>
+#endif
 #include <errno.h>
 #include <string.h>
 #include <assert.h>

@@ -5,8 +5,9 @@
  *      Author: sundayman66@gmail.com
  */
 #include "default_protocol.h"
-
+#if _WIN32
 #include <tchar.h>
+#endif
 #include <sstream>
 
 #include "tinyxml.h"

@@ -4,8 +4,9 @@
  * \author	: sundayman
  * \date	: Jun 11, 2012
  */
-
+#if _WIN32
 #include <tchar.h>
+#endif
 #include <stdio.h>
 #include "env_master.h"
 #include "event.h"
@@ -38,7 +39,7 @@ void EnvMaster::SetLogInterface() {
 
 	event_set_log_callback(log_interface);
 }
-
+#if _WIN32
 void __cdecl AppLog(int level, const wchar_t *format, ...)
 {
 	static log4cxx::LoggerPtr logger(Logger::getLogger(L"App"));
@@ -47,6 +48,7 @@ void __cdecl AppLog(int level, const wchar_t *format, ...)
 
 	int nBuf;
 	wchar_t szBuffer[4096]= L"";
+
 
 	nBuf = _vsnwprintf(szBuffer, _countof(szBuffer), format, args);
 
@@ -69,6 +71,7 @@ void __cdecl AppLog(int level, const wchar_t *format, ...)
 	}
 
 }
+#endif
 void __cdecl AppLog(int level, const char *format, ...)
 {
 	static log4cxx::LoggerPtr logger(Logger::getLogger("App"));
@@ -77,9 +80,11 @@ void __cdecl AppLog(int level, const char *format, ...)
 
 	int nBuf;
 	char szBuffer[4096]= "";
-
+#if _WIN32
 	nBuf = _vsnprintf(szBuffer, _countof(szBuffer), format, args);
-
+#else
+	nBuf = vsnprintf(szBuffer, _countof(szBuffer), format, args);
+#endif
 	va_end(args);
 	switch(level) {
 	case APP_LOG_DEBUG:

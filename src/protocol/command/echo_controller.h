@@ -7,8 +7,11 @@
 
 #ifndef ECHO_CONTROLLER_H_
 #define ECHO_CONTROLLER_H_
-
+#if _WIN32
 #include <tchar.h>
+#else
+
+#endif
 
 #include "../../third_party/tinyxml/tinyxml.h"
 
@@ -42,7 +45,7 @@ public:
 
 		AckSender ack_sender(_name, false, "invalid xml format");
 		ack_sender.Excute(diplomat, cmd_id);
-	    AppLog(APP_LOG_ERR, _T("net: recv invalid echo method"));
+	    AppLog(APP_LOG_ERR, "net: recv invalid echo method");
 		return;
 	}
 protected:

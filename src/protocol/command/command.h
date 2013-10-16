@@ -12,7 +12,7 @@
 
 #include "util/ref_counter.h"
 
-#include "../diplomat.h"
+#include "diplomat.h"
 
 class TiXmlElement;
 

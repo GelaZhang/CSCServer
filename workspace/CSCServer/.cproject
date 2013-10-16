@@ -27,6 +27,12 @@
 								<option id="gnu.cpp.compiler.exe.debug.option.debugging.level.208124545" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1589657215" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="../../../third_party/libevent"/>
+									<listOptionValue builtIn="false" value="../../../src"/>
+									<listOptionValue builtIn="false" value="../../../third_party/tinyxml"/>
+									<listOptionValue builtIn="false" value="../../../third_party/"/>
+								</option>
+								<option id="gnu.cpp.compiler.option.preprocessor.def.650101067" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="LOG4CXX_STATIC"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1555691516" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -39,7 +45,11 @@
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.1384615643" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.libs.1401590071" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="event"/>
+									<listOptionValue builtIn="false" value="log4cxx"/>
 									<listOptionValue builtIn="false" value="event_pthreads"/>
+								</option>
+								<option id="gnu.cpp.link.option.paths.1649025265" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+									<listOptionValue builtIn="false" value="/usr/local/lib"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.2102303347" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -54,7 +64,7 @@
 					<sourceEntries>
 						<entry excluding="third_party|src" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="third_party"/>
+						<entry excluding="log4cxx|libevent" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="third_party"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -101,6 +111,9 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<sourceEntries>
+						<entry excluding="third_party/log4cxx|third_party/libevent" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
 				</configuration>
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>

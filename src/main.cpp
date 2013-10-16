@@ -10,7 +10,7 @@
 #include <stdlib.h>
 
 #include "log4cxx/logger.h"
-#include "log4cxx/PropertyConfigurator.h"
+#include "log4cxx/propertyconfigurator.h"
 
 #include "def.h"
 #include "net_service.h"
@@ -37,7 +37,11 @@ int main(int argc, char* argv[]) {
 	svr.Init(&embassy, 4);
 	svr.Start();
 	for (;;) {
+#if _WIN32
 		Sleep(5000);
+#else
+		sleep(5);
+#endif
 		svr.Dump();
 	}
 #ifndef WIN32
