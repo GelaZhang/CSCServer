@@ -17,8 +17,9 @@
 #include "embassy.h"
 #include "protocol/default_factory.h"
 #include "protocol/command/echo_controller.h"
-
+#ifdef _WIN32
 #pragma comment(lib, "log4cxx.lib")
+#endif
 using namespace CSCServer;
 #if _DEBUG
 struct State {
@@ -32,26 +33,10 @@ int main(int argc, char* argv[]) {
 	log4cxx::PropertyConfigurator::configure("log4cxx.properties");
 
 	DefaultFactory embassy;
-	
+
 	NetService svr(5055);
 	svr.Init(&embassy, 4);
-	svr.Start();
-	for (;;) {
-#if _WIN32
-		Sleep(5000);
-#else
-		sleep(5);
-#endif
-		svr.Dump();
-	}
-#ifndef WIN32
-	sleep(50);
-#else
-    Sleep(30000);
-#endif
-    
-	svr.Stop();
-	svr.UnInit();
+	svr.Main(argc, argv);
 	return 0;
 }
 

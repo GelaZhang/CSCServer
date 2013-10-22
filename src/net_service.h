@@ -8,6 +8,7 @@
 #ifndef NET_SERVICE_H_
 #define NET_SERVICE_H_
 
+#include <semaphore.h>
 #include "util/thread.h"
 #include "diplomat_master.h"
 
@@ -22,11 +23,21 @@ public:
 	NetService(short int net_port);
 	~NetService();
 	/**
+	 * \remark 此函数将阻塞，直到调用Quit或者按下Ctrl-C(发出SIGINT信号)
+	 */
+	int Main(int argc, char* argv[]);
+	/**
 	 * \brief 初始化网络服务
 	 * \param[in] embassy is the office of the diplomat
 	 * \param[in] concurrent_num 并发数，即线程个数
 	 */
 	int Init(Embassy *embassy, int concurrent_num);
+	/**
+	 * \brief 退出Main函数
+	 */
+	void Quit();
+protected:
+
 
 	/**
 	 * \brief 开启网络服务，必须先Init才能Start
@@ -67,6 +78,7 @@ private:
 private:
 	event_base **_event_base;
 	event **_event_hold_base;
+	event *_signal_event;
 	int _e_base_index;
 	int _concurrent_num;
 	EventThreadPtr *_event_thread;
@@ -74,6 +86,7 @@ private:
 	short int _net_port;
 	Embassy *_embassy;
 	DiplomatMaster _master;
+	sem_t _signal;
 };
 };
 

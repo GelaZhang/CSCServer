@@ -14,13 +14,14 @@
 #include "strings.h"
 #include <arpa/inet.h>
 #else
-#include <time.h>
 #include <Windows.h>
 #endif
+#include <time.h>
 #include <string.h>
 #include <assert.h>
 
 #include <errno.h>
+#include <signal.h>
 
 #include "event.h"
 extern "C" {
@@ -44,18 +45,47 @@ NetService::NetService(short int net_port) {
 	_concurrent_num = 0;
 	_event_thread = NULL;
 	_embassy = NULL;
+	sem_init(&_signal, 0, 0);
 }
 
 NetService::~NetService() {
 
 	UnInit();
+	sem_destroy(&_signal);
+}
+
+int NetService::Main(int argc, char* argv[]) {
+
+	Start();
+	for (int i = 0; i < 10; i++) {
+		struct timespec ts;
+		ts.tv_sec = time(NULL) + 10;
+		ts.tv_nsec = 0;
+		int ret = sem_timedwait(&_signal, &ts);
+		if ( !( -1 == ret && errno == ETIMEDOUT ) )
+			break;
+		Dump();
+	}
+
+	Stop();
+	UnInit();
+	return 1;
+}
+
+void timeout_event_cb_fn(evutil_socket_t, short, void *) {
 
 }
 
-void event_cb_fn(evutil_socket_t, short, void *) {
-#if _DEBUG
-	printf("event cb fn\n");
-#endif
+void signal_cb_fn(evutil_socket_t, short, void *arg) {
+	event_msgx("Recv a signal SIGINT ready to quit now");
+	NetService *instance = reinterpret_cast<NetService*>(arg);
+	if ( instance ) {
+		instance->Quit();
+	} else {
+		event_errx(EVENT_LOG_ERR, "signal event arg invalid");
+	}
+
+
 }
 
 int NetService::Init(Embassy *embassy, int concurrent_num) {
@@ -98,11 +128,15 @@ int NetService::Init(Embassy *embassy, int concurrent_num) {
     struct timeval timeout = {2,1};
     for ( int i = 0; i < concurrent_num - 1; i ++ ) {
 
-    	_event_hold_base[i] = event_new(_event_base[i+1], -1, EV_PERSIST|EV_WRITE, event_cb_fn, NULL );
+    	_event_hold_base[i] = event_new(_event_base[i+1], -1, EV_PERSIST|EV_WRITE, timeout_event_cb_fn, NULL );
     	event_add(_event_hold_base[i], &timeout);
     }
-    
 
+	_signal_event= evsignal_new(_event_base[_e_base_index], SIGINT, signal_cb_fn, (void *)this );
+	if (!_signal_event || event_add(_signal_event, NULL)<0) {
+		event_errx(EVENT_LOG_ERR, "Could not create/add a signal event!\n");
+		return kLibEventErr;
+	}
     sockaddr_in sin;
     bzero(&sin, sizeof(sin));
     sin.sin_family = AF_INET;
@@ -123,6 +157,9 @@ int NetService::Init(Embassy *embassy, int concurrent_num) {
 	return kOK;
 }
 
+void NetService::Quit() {
+	sem_post(&_signal);
+}
 int NetService::Start() {
 	_embassy->StartEmbassy();
 	for ( int i = 0; i < _concurrent_num; i ++ ) {
@@ -141,14 +178,6 @@ int NetService::Stop() {
         event_msgx("disable listener");
     }
 
-    if ( _event_hold_base ) {
-
-        for ( int i = 0; i < _concurrent_num - 1; i ++ ) {
-
-            event_del(_event_hold_base[i]);
-            event_msgx("del timeout event");
-        }
-    }
     _master.FreeAllDiplomat();
     for ( int i = 0; i < _concurrent_num; i ++ ) {
 
@@ -181,6 +210,8 @@ int NetService::UnInit() {
 
 			event_free(_event_hold_base[i]);
 		}
+		event_free(_signal_event);
+		_signal_event = NULL;
 		delete []_event_hold_base;
 		_event_hold_base = NULL;
 	}
