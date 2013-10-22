@@ -12,7 +12,7 @@
  * \brief embassy service for protocol analysis layer.
  * \	  if you want to change default action of the embassy ,
  * \		 you can inherit class Embassy and then implement your version
- *	Ğ­Òé¶ÔÏó¹¤³§½Ó¿Ú£¬ÊµÏÖÕâ¸ö½Ó¿Ú¾Í¿ÉÒÔÊµÏÖÌØ¶¨µÄĞ­Òé¹¤³§£¨²úÉúĞ­Òé¶ÔÏóµÄ¶ÔÏó£©
+ *  \	åè®®å¯¹è±¡å·¥å‚æ¥å£ï¼Œå®ç°è¿™ä¸ªæ¥å£å°±å¯ä»¥å®ç°ç‰¹å®šçš„åè®®å·¥å‚ï¼ˆäº§ç”Ÿåè®®å¯¹è±¡çš„å¯¹è±¡ï¼‰
  */
 
 #include "diplomat.h"
@@ -24,15 +24,15 @@ class Embassy {
 public:
 	virtual ~Embassy(){}
 	/**
-	*	\brief ²úÉúĞ­Òé¶ÔÏó,Ò»¸öÁ¬½Ó¶ÔÓ¦Ò»¸öĞ­Òé¶ÔÏó
+	*	\brief äº§ç”Ÿåè®®å¯¹è±¡,ä¸€ä¸ªè¿æ¥å¯¹åº”ä¸€ä¸ªåè®®å¯¹è±¡
 	*/
 	virtual ProtocolPtr BuildProtocol(const DiplomatPtr &diplomat);
 	/**
-	*	\brief Æô¶¯Ğ­Òé¹¤³§£¬ÄÚ²¿×Ô¶¯µ÷ÓÃ£¬ ÔÚ´Ë×öÒ»Ğ©³õÊ¼»¯²Ù×÷
+	*	\brief å¯åŠ¨åè®®å·¥å‚ï¼Œå†…éƒ¨è‡ªåŠ¨è°ƒç”¨ï¼Œ åœ¨æ­¤åšä¸€äº›åˆå§‹åŒ–æ“ä½œ
 	*/
 	virtual void StartEmbassy();
 	/**
-	*	\brief Í£Ö¹Ğ­Òé¹¤³§£¬ÄÚ²¿×Ô¶¯µ÷ÓÃ£¬ÔÚ´Ë×öÒ»Ğ©Çå³ı²Ù×÷
+	*	\brief Í£Ö¹åœæ­¢åè®®å·¥å‚ï¼Œå†…éƒ¨è‡ªåŠ¨è°ƒç”¨ï¼Œåœ¨æ­¤åšä¸€äº›æ¸…é™¤æ“ä½œ
 	*/
 	virtual void StopEmbassy();
 };

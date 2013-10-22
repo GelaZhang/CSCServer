@@ -111,9 +111,9 @@ private:
 	char _ip[INET_ADDRSTRLEN + 1];
 	unsigned int _port;
 
-	int _method_num;//ÊÕµ½µÄ°ü¸öÊı¡£
-	size_t _recv_cnt;//ÊÕµ½µÄÊı¾İÁ¿
-	size_t _send_cnt;//·¢ËÍµÄÊı¾İÁ¿
+	int _method_num;//æ”¶åˆ°çš„åŒ…ä¸ªæ•°ã€‚
+	size_t _recv_cnt;//æ”¶åˆ°çš„æ•°æ®é‡
+	size_t _send_cnt;//å‘é€çš„æ•°æ®é‡
 };
 
 typedef Utility::SmartPtr<Diplomat> DiplomatPtr;

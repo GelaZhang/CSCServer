@@ -1,18 +1,15 @@
 /* 
- * filename : embassy.h
+ * filename : protocol.h
  * author   : sundayman
  * date     : 4 12, 2013
- * brief    : Ğ­Òé½Ó¿Ú£¬ÒªÊµÏÖĞÂµÄĞ­Òé£¬ĞèÒª¼Ì³Ğ¸Ã½Ó¿Ú£¬²¢ÇÒÓÉĞ­Òé¹¤³§Ààµ÷ÓÃ 
+ * brief    : åè®®æ¥å£ï¼Œè¦å®ç°æ–°çš„åè®®ï¼Œéœ€è¦ç»§æ‰¿è¯¥æ¥å£ï¼Œå¹¶ä¸”ç”±åè®®å·¥å‚ç±»è°ƒç”¨
  */
 
 #ifndef PROTOCOL_H_
 #define PROTOCOL_H_
 
 /**
- * \brief embassy service for protocol analysis layer.
- * \	  if you want to change default action of the embassy ,
- * \		 you can inherit class Embassy and then implement your version
- *	Ğ­Òé¶ÔÏó¹¤³§½Ó¿Ú£¬ÊµÏÖÕâ¸ö½Ó¿Ú¾Í¿ÉÒÔÊµÏÖÌØ¶¨µÄĞ­Òé¹¤³§£¨²úÉúĞ­Òé¶ÔÏóµÄ¶ÔÏó£©
+ * \brief åè®®æ¥å£åŸºç±»ï¼Œå®ç°æ–°çš„åè®®è§£æï¼Œéœ€è¦å®ç°è¯¥æ¥å£.
  */
 
 #include "diplomat.h"

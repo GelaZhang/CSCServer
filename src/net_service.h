@@ -23,21 +23,24 @@ public:
 	NetService(short int net_port);
 	~NetService();
 	/**
+	 * \brief 启动网络通信功能直到调用Quit，需要先调用Init函数
 	 * \remark 此函数将阻塞，直到调用Quit或者按下Ctrl-C(发出SIGINT信号)
 	 */
 	int Main(int argc, char* argv[]);
+
 	/**
 	 * \brief 初始化网络服务
-	 * \param[in] embassy is the office of the diplomat
+	 * \param[in] embassy is the office of the diplomat,协议工厂，具体采用什么通信协议由该参数决定
 	 * \param[in] concurrent_num 并发数，即线程个数
 	 */
 	int Init(Embassy *embassy, int concurrent_num);
+
 	/**
 	 * \brief 退出Main函数
 	 */
 	void Quit();
-protected:
 
+protected:
 
 	/**
 	 * \brief 开启网络服务，必须先Init才能Start
@@ -54,6 +57,9 @@ protected:
 	 */
 	int UnInit();
 
+	/**
+	 * \brief 打印当前连接信息
+	 */
 	void Dump() {
 		_master.Dump();
 	}
