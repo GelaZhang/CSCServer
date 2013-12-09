@@ -48,13 +48,15 @@ void RefCounter::Release()
         delete this;
     }
 #else
-    AutoMutex mutex(_mutex);
+    _mutex.Lock();
     assert(_ref > 0);
     _ref --;
     if ( 0 == _ref && !_no_delete ) {
     	_no_delete = true;
+    	_mutex.UnLock();
     	delete this;
     }
+    _mutex.UnLock();
 #endif
 }
 
